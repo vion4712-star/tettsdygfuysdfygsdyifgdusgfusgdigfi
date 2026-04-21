@@ -1,0 +1,474 @@
+# CupCakeMC E commerce Website
+
+## Overview
+A Minecraft-themed e-commerce platform where players can purchase server ranks, crate keys, and other in-game perks using QR code-based UPI payments. The website features live server status monitoring, email-based authentication system, an admin dashboard for managing the store, and a secure admin token link system for role promotion. The application is deployed at the custom domain **cupcake_smp.com**.
+
+## Core Features
+
+### Homepage
+- Display live Minecraft server status including:
+  - Current player count
+  - Online/offline server indicator
+  - Server IP address: `epyc-m1.veltrionhost.fun:25576`
+- Vote for the Server section:
+  - Visually styled card with links to popular Minecraft server listing sites (Minecraft-mp.com, TopG.org)
+  - Tooltips encouraging users to vote for the server
+- Join Discord section:
+  - Discord icon and join button with label "Join CupCakeMC Discord"
+  - Links to Discord invite URL: `https://discord.gg/bHrMWEYg7E`
+  - Opens in a new tab
+- Cupcake-themed design with pixel-style UI elements and soft pastel color palette
+- Navigation to shop and other sections
+
+### Shop System
+- Browse available items organized by categories:
+  - Server ranks (VIP, Premium, Elite, etc.)
+  - Crate keys (Common, Rare, Legendary)
+  - Other in-game perks and items
+- Each item displays:
+  - Name and description
+  - Price in USD
+  - Preview of benefits/contents
+- Shopping cart functionality
+- QR code-based UPI checkout process
+
+### Payment Processing
+- QR code-based UPI payment system for processing transactions with complete privacy protection
+- Checkout flow generates a valid, scannable QR code containing:
+  - Total cart amount in correct INR format (amount in rupees, not paise)
+  - Alias-based payee identifier "CupCakeMC Store" (actual UPI ID completely hidden from buyers)
+  - Unique transaction reference ID per order
+  - Proper UPI URL format for universal compatibility with all UPI apps
+- Payment page displays:
+  - Valid QR code scannable by Google Pay, PhonePe, Paytm, and other UPI apps
+  - **QR code sized smaller for comfortable viewing without requiring zoom - optimized for easy scanning while maintaining compact display**
+  - **Compact payment dialog that fits comfortably on screen with reduced overall size**
+  - 5-minute countdown timer with visible seconds remaining
+  - Clear instructions for scanning and payment showing "Pay to CupCakeMC Store"
+  - **"Done" button displayed below the QR code**
+  - Refresh/retry option to generate new QR code after expiration
+- **Payment confirmation flow**:
+  - When "Done" button is clicked, display confirmation dialog asking "Have you completed the payment?"
+  - Dialog provides two options: "Yes" and "No"
+  - If user clicks "Yes": mark order locally as pending, update status to show "Pending - Please kindly wait for confirmation", and send API request to store pending state
+  - If user clicks "No": close dialog without changing order status
+- QR code expiration handling:
+  - Automatic expiration after exactly 5 minutes
+  - Visual countdown timer showing remaining time
+  - Toast notification when QR code expires
+  - Automatic refresh option for new QR code generation
+- Comprehensive error handling for all payment flow scenarios:
+  - QR code generation failures with fallback options
+  - Expired QR code validation and user notifications
+  - Invalid payment responses with clear error messages
+  - Network connectivity issues with retry mechanisms
+- Order confirmation and receipt generation with UPI transaction details
+- Automatic delivery instructions for purchased items
+- Currency conversion validation to ensure accurate INR amounts are displayed and processed
+- Privacy protection ensures only "CupCakeMC Store" is visible to buyers, hiding all personal banking details
+
+### User Authentication
+- **Email-based authentication system with stable Version 39 implementation**:
+  - **User registration with email, password, confirm password, name, and Minecraft username fields**
+  - **Registration form validation for matching passwords and required fields**
+  - **Immediate account activation after registration - no verification required**
+  - **User login with email and password**
+  - **Password recovery functionality**
+  - **User logout functionality that properly clears session without freezing or crashing**
+  - **Session persistence using localStorage to maintain login state after page refresh**
+  - **Smooth switching between login and registration screens without UI freezing**
+  - **Stable authentication state management that prevents logout-related crashes**
+  - **Production-ready authentication with proper error handling and validation**
+  - **Instant authentication response without delays or loading issues**
+- **Authentication required for accessing:**
+  - **Admin Dashboard**
+  - **Payment History**
+  - **User Profile**
+  - **Order management**
+  - **UPI QR code generation and payment processing**
+- **ProtectedRoute component uses email/session-based authentication exclusively**
+- **All authentication checks reference email/session-based system only**
+- **Remove any broken or redundant authentication code that causes freezing after logout**
+
+### Admin Token Link System
+- **Secure admin promotion system using unique tokens**:
+  - Generate unique, randomly generated tokens for admin promotion
+  - Special URL route `/admin-token/:token` for accessing token links
+  - Token verification and automatic admin role promotion for logged-in users
+  - One-time use tokens that are consumed after successful promotion
+  - Backend validation to prevent token reuse or forgery
+  - Authentication required - tokens only work for logged-in users
+- **Admin token management interface**:
+  - Generate new admin tokens from Admin Dashboard
+  - View list of active (unused) tokens with creation timestamps
+  - Copy token links for sharing
+  - Revoke active tokens before use
+  - Token expiration after a reasonable time period
+- **Security features**:
+  - Cryptographically secure random token generation
+  - Backend validation of token authenticity
+  - Prevention of token reuse after consumption
+  - Audit logging of token usage and admin promotions
+  - Rate limiting on token generation
+
+### Payment History
+- **Authentication required to access payment history**
+- Display user's own order details:
+  - Date of purchase
+  - Items purchased
+  - Amount paid
+  - UPI transaction reference
+  - Order status (pending, confirmed, completed)
+  - **"Pending - Please kindly wait for confirmation" message for pending orders with visual indicator**
+- Real-time synchronization with backend order records
+- **Shows only authenticated user's orders**
+- **Pending state and message persist correctly after page refresh**
+- **Visual indicators distinguish pending orders from other statuses**
+
+### Admin Dashboard
+- **Complete Admin Dashboard accessible at `/admin` route with proper routing and UI restoration**
+- **Authentication required for admin access using email-based system exclusively**
+- **Role-based access control with proper email-based authentication only**
+- **Admin Dashboard must be visible in navigation and accessible to users with admin privileges**
+- **Ensure vion4712@gmail.com has immediate access to Admin Dashboard with full admin rights**
+- **Moderator role support with restricted permissions**
+- **Product Management section**:
+  - Add new products with name, description, category, price, and availability
+  - Edit existing products and update all product details
+  - Delete products from the catalog
+  - Toggle product availability (enable/disable products)
+  - View complete product catalog with management controls
+- **Order Management section**:
+  - View all customer orders with comprehensive details
+  - Display order information including UPI transaction references
+  - Hide/unhide toggle functionality for each order:
+    - Toggle button allows admin to hide or unhide specific orders without deletion
+    - Hidden orders remain in backend storage but are filtered from view
+    - "Show hidden" toggle to display hidden orders when needed
+    - Hide/unhide state persists across page reloads using local storage on admin client
+  - Manage order statuses (pending, confirmed, completed)
+  - Process pending order confirmations
+- **Role Management section**:
+  - Interface for managing user roles and permissions
+  - Display current user roles and permissions
+  - Promote users to Admin role
+  - Promote users to Moderator role
+  - Demote users back to User role
+  - Role assignment functionality with confirmation dialogs
+  - View role assignment history
+- **Admin Token Management section**:
+  - Generate new admin promotion tokens
+  - Display active tokens with creation timestamps
+  - Copy token links for sharing with full URL
+  - Revoke unused tokens before they are consumed
+  - View token usage history and audit logs
+  - Token expiration management
+- **UPI settings section**:
+  - Configure admin UPI ID where payments should be sent
+  - Admin settings panel for UPI configuration
+- Monitor sales analytics and revenue
+- **Role-based access control**:
+  - **Authentication required for all admin functions using email-based system exclusively**
+  - Different permission levels for different admin functions
+- **Tabbed interface for easy navigation between management sections**
+- **Responsive design for desktop and mobile access**
+
+### Role Management System
+- **Two-tier permission system**:
+  - **Admin role**: Full access to all features including UPI settings, role management, and token generation
+  - **Moderator role**: All admin permissions except UPI-related functions, role management, and token generation
+- **Role assignment**:
+  - Role management interface for assigning roles
+  - **Role assignment within the Admin Dashboard interface**
+  - **Admin token link system for secure role promotion**
+- **Permission enforcement**:
+  - **Backend validates user authentication and roles for all operations using email-based system exclusively**
+  - UPI-related functions restricted to admin role only
+  - Role management functions restricted to admin role only
+  - Token generation and management restricted to admin role only
+  - All other admin functions available to both admins and moderators
+- **Primary admin account**:
+  - **Email vion4712@gmail.com with Minecraft username VionGamingGoYT is designated as the primary admin account with full permissions**
+  - **Primary admin has complete access to manage products, orders, roles, and tokens**
+  - **Primary admin privileges are permanently linked to this email in the authentication system**
+  - **Backend must properly recognize vion4712@gmail.com as admin and grant full administrative access**
+  - **Frontend must display Admin Dashboard navigation and allow access to all admin features for vion4712@gmail.com**
+
+### Navigation
+- Header navigation includes:
+  - Home
+  - Shop
+  - Vote (links to voting section)
+  - Discord (links to `https://discord.gg/bHrMWEYg7E` in new tab with "Join CupCakeMC Discord" label)
+  - **Login/Register (when not authenticated)**
+  - **Payment History (when authenticated)**
+  - **Admin Dashboard (when authenticated and authorized as admin - must be visible for vion4712@gmail.com)**
+  - **Profile/Logout (when authenticated)**
+- **Header logo displays cupcake logo in top-left position with proper scaling and crisp pixelated quality**
+
+## Backend Data Storage
+- Store product catalog (items, prices, descriptions, categories) including a test product with:
+  - ID: "admin"
+  - Name: "Admin"
+  - Description: "Test product for administrative verification"
+  - Category: perk
+  - UPI Amount: 100
+  - Available: true
+- **Store user accounts with securely hashed passwords using email-based authentication exclusively**
+- **Store comprehensive user registration data including email, name, and Minecraft username**
+- **Store user sessions and authentication tokens with production-ready security using email-based system exclusively**
+- **Store user emails and account information**
+- Store customer orders with comprehensive UPI transaction records linked to user accounts
+- Store QR code transaction data with precise timestamps and expiration validation
+- **Store user roles and permissions**:
+  - Admin user permissions
+  - Moderator user permissions
+  - Role assignment data
+  - **Role promotion history and management records**
+  - **Primary admin designation for email vion4712@gmail.com with Minecraft username VionGamingGoYT with full administrative privileges**
+  - **Ensure vion4712@gmail.com is properly stored and recognized as admin in the database**
+- **Store admin promotion tokens**:
+  - Unique token identifiers with cryptographic security
+  - Token creation timestamps and expiration dates
+  - Token status (active, used, revoked)
+  - Token usage history and audit logs
+  - Associated admin who generated each token
+- Store admin UPI configuration settings with default UPI ID set to `9971378629@mbk`
+- Cache server status data for display
+- Store order status tracking (pending, confirmed, completed)
+- **Store pending payment confirmations when users manually confirm payment completion**
+
+## Backend Operations
+- **Email/password registration and authentication operations using stable Version 39 implementation**:
+  - **Process user registration with email, password, name, and Minecraft username**
+  - **Immediate account activation after registration - no verification required**
+  - **Secure password hashing and validation**
+  - **User login with email and password verification**
+  - **Backend validation that synchronizes with frontend authentication state**
+  - **Password recovery functionality**
+  - **Session management and token validation with production security using email-based system exclusively**
+  - **User logout and session cleanup that properly clears authentication state**
+  - **Robust authentication error handling for production environment**
+  - **Remove any broken authentication logic that causes logout freezing or crashes**
+- **Fixed authentication validation for payment operations**:
+  - **Properly validate email-based authentication for UPI QR code generation without "Unauthorized" errors**
+  - **Update requireAuthenticatedUser function to correctly recognize email-authenticated accounts**
+  - **Ensure generateUpiQr endpoint accepts verified email users and validates session info properly**
+  - **Fix authentication checks to recognize legitimate email-logged-in users for all payment functions**
+  - **Validate user sessions consistently across all payment-related endpoints**
+  - **Frontend QR code generation calls must properly include session info or email-based authentication context**
+- **Admin role validation and enforcement**:
+  - **Properly validate that vion4712@gmail.com has admin privileges**
+  - **Return correct admin status in authentication responses for vion4712@gmail.com**
+  - **Ensure all admin-protected endpoints recognize vion4712@gmail.com as authorized admin**
+  - **Fix backend admin role detection and validation for vion4712@gmail.com**
+- **Admin token operations**:
+  - Generate cryptographically secure random tokens for admin promotion
+  - Validate token authenticity and prevent forgery
+  - Process token-based admin role promotion for authenticated users
+  - Implement one-time use token consumption
+  - Token expiration validation and cleanup
+  - Revoke active tokens on admin request
+  - Audit logging for all token operations and role promotions
+  - Rate limiting on token generation to prevent abuse
+- Generate valid, scannable QR codes with proper UPI URL format compatible with all UPI apps
+- Include correct transaction details: amount in INR (rupees, not paise), alias-based payee "CupCakeMC Store", and unique reference
+- Implement alias-based UPI payment routing to completely hide admin UPI ID (`9971378629@mbk`) from buyers
+- Ensure QR codes display only "CupCakeMC Store" as payee name across all UPI apps (Google Pay, PhonePe, Paytm)
+- Implement precise currency conversion validation to ensure amounts are correctly formatted in rupees
+- Validate QR code generation to prevent amount multiplication errors (e.g., ₹40 should remain ₹40, not ₹4000)
+- Implement precise 5-minute expiration validation from QR code generation timestamp
+- Handle QR code generation errors with proper error responses and fallback mechanisms
+- Comprehensive validation and error handling for all payment flow edge cases:
+  - Expired QR code detection and rejection
+  - Invalid payment response validation
+  - Network timeout handling with appropriate user feedback
+  - Malformed transaction data validation
+- Process UPI payment confirmations and update order status in real-time
+- **Handle manual payment confirmation requests from "Done" button flow**
+- **Store and retrieve pending order states with proper status tracking**
+- Query Minecraft server at `epyc-m1.veltrionhost.fun:25576` for live status updates
+- Manage product inventory and availability
+- Generate order confirmations and delivery instructions with complete UPI details
+- **Authentication and authorization checks for all protected operations with production-ready validation using email-based system exclusively**
+- **Retrieve payment history for authenticated users only**
+- **Role-based access control enforcement**:
+  - **Validate user authentication and roles for all operations using email-based system exclusively**
+  - Restrict UPI-related functions to admin role only
+  - **Restrict role management functions to admin role only**
+  - **Restrict token generation and management to admin role only**
+  - Allow all other admin functions for both admins and moderators
+  - **Enforce primary admin privileges for email vion4712@gmail.com with complete access to all administrative functions**
+  - **Fix admin access validation to properly recognize vion4712@gmail.com as admin**
+- **UPI settings management**:
+  - Manage admin UPI ID configuration with `9971378629@mbk` as the default payment recipient
+- **Role management operations**:
+  - Assign and revoke moderator and admin roles
+  - **Process role promotion requests from Admin Dashboard interface**
+  - **Process token-based admin role promotions**
+  - Validate role permissions for all operations
+  - **Retrieve and display current user roles for management interface**
+  - **Initialize and maintain primary admin status for email vion4712@gmail.com**
+- Provide consistent error handling and user feedback for all operations
+- Validate privacy protection across multiple UPI apps to ensure banking details remain hidden
+- **Production-ready deployment configuration and error handling**
+
+## Deployment Configuration
+- Primary website URL: **cupcake_smp.com**
+- All internal navigation links must use the custom domain
+- Payment redirections and callbacks must reference the custom domain
+- Website metadata (Open Graph, Twitter cards, canonical URLs) must use the custom domain and reference "CupCakeMC"
+- All absolute URLs in the application must point to cupcake_smp.com
+- All resource links (images, CSS, JavaScript) must resolve correctly under the custom domain
+- Backend API endpoints must be accessible and functional under the custom domain
+- All redirects and internal links must work seamlessly with the custom domain
+- Verify all static assets and generated images load properly from the custom domain
+- **Admin token links must work correctly with the custom domain**
+- **Production-ready deployment with proper error handling and logging**
+- **Secure authentication token handling in production using email-based system exclusively**
+- **Production database configuration and connection handling**
+
+## Design Requirements - Version 39 Stable Authentication with Enhanced Modal Positioning
+- **Black or very dark background applied to the app's outer container (overall page wrapper or body)**
+- **Maintain the complete CupCakeMC pastel theme for inner sections with pink, cream, and light brown color palette**
+- **Ensure all Tailwind CSS classes and global styles in index.css are properly imported and applied to maintain the cupcake-themed color palette and gradients for inner content**
+- **All components must use the original cupcake theme colors for inner sections: Header, Footer, Hero banner, Product cards, Admin dashboard, authentication forms, and all UI elements**
+- **Footer and header blend smoothly with the new black outer background while maintaining contrast for readability**
+- **All UI components (Header, Footer, ShoppingCart, Account Info sections, buttons, and navigation elements) must use white text color when displayed over dark or black backgrounds**
+- **Consistent white text across all pages (HomePage, ShopPage, AdminDashboard, and modals) while preserving cupcake theme accent colors (pinks, creams, browns)**
+- **Hover and focus states maintain excellent contrast and readability against black backgrounds while preserving cupcake theme accent colors**
+- Cupcake-themed visual design with blocky, pixel-style elements and soft pastel color palette for inner content
+- Pink, cream, light brown, and white color scheme reminiscent of cupcakes and frosting for inner sections
+- Cupcake-style gradients and subtle frosting-inspired highlights for accent hover/focus effects
+- Playful pastel backgrounds for hero banner and section headers that match the CupCakeMC theme
+- Responsive design for desktop and mobile devices
+- Clear navigation and intuitive user experience
+- Consistent styling for Vote and Discord sections with cupcake theme
+- **Header cupcake logo with cupcake-pink gradient hover and focus effects for consistency**
+- **Cupcake logo properly scaled, centered, and maintains crisp pixelated quality**
+- **Logo displays correctly across light/dark modes and on both desktop and mobile layouts**
+- **Email-based authentication forms with cupcake theme styling and stable Version 39 implementation**:
+  - **Registration form with email, password, confirm password, name, and Minecraft username fields**
+  - **Registration form validation for matching passwords and all required fields**
+  - **Login form with email and password fields**
+  - **Password recovery form with email field**
+  - **Form validation and error messaging with production-ready error handling**
+  - **Loading states and user feedback for authentication processes**
+  - **Stable form switching between login and registration without UI freezing**
+  - **Proper logout functionality that clears authentication state without crashing**
+- **Authentication modal styling using stable Version 39 implementation - Enhanced Upward and Further Left-Shifted Positioning with Responsive Registration Modal Sizing**:
+  - **Modal positioned significantly further upward and more to the left from center for improved visual hierarchy and balanced spacing**
+  - **Maintain centered alignment relative to the screen while adjusting position for better visual balance**
+  - **Registration modal specifically sized to be slightly smaller vertically to ensure lower page content remains accessible and scrollable on all devices**
+  - **Registration modal maintains responsive design without pushing content out of view or causing screen overflow on smaller devices**
+  - **Black background for the modal container with white text for all labels, buttons, and inputs**
+  - **Subtle pink accents for buttons, highlights, and borders to maintain CupCakeMC theme aesthetic**
+  - **Responsive modal scaling: proper centering and sizing across all device sizes with enhanced upward and further left-shifted positioning on both desktop and mobile**
+  - **Seamless integration with the existing dark outer look**
+- **Enhanced modal animations for login/register modal - Version 39 stable specifications with adjusted positioning and responsive registration modal**:
+  - **Modal opening animation: smooth slide-up from the bottom with easing transition, accounting for enhanced upward and further left-shifted positioning**
+  - **Modal closing animation: smooth slide-down and fade-out effect with proper positioning**
+  - **Login/register mode switching: pixel-blur transition effect (200-300ms) for polished, dynamic visual effect without freezing**
+  - **All animations use CSS keyframes or Framer Motion classes compatible with Tailwind**
+  - **Animations maintain cupcake pastel theme colors harmonized with black outer background**
+  - **Smooth performance across modern browsers with no flickering**
+  - **Transitions tested for consistent behavior and visual polish with enhanced modal positioning and responsive registration modal sizing**
+  - **Stable animation performance that doesn't cause logout-related crashes**
+- **Complete Admin Dashboard styling with cupcake theme and black background integration**:
+  - **Restore full Admin Dashboard UI with proper routing and component rendering**
+  - **Product Management section with add/edit/delete product forms**
+  - **Order Management section with hide/unhide toggles and status management**
+  - **Role Management section with user role promotion/demotion controls**
+  - **Admin Token Management section with token generation, copying, and revocation**
+  - **UPI Settings section for payment configuration**
+  - **Tabbed interface for easy navigation between management sections**
+  - **Consistent cupcake theme styling with white text on black background**
+  - **Pink accent colors for buttons, highlights, and interactive elements**
+  - **Responsive design for desktop and mobile access**
+  - **Loading states and success/error notifications for all admin operations**
+- **Admin Token Link interface styling**:
+  - **Token generation section with cupcake theme styling**
+  - **Active tokens list with creation timestamps and copy/revoke buttons**
+  - **Token link display with easy copy functionality**
+  - **Success/error notifications for token operations**
+  - **Consistent styling with existing admin dashboard components**
+- **Admin Token Link page styling**:
+  - **Special page for `/admin-token/:token` route with cupcake theme**
+  - **Token verification status display**
+  - **Success/error messages for promotion attempts**
+  - **Redirect handling after successful promotion**
+- QR code payment dialog with:
+  - **Compact dialog size that fits comfortably on screen without requiring zoom adjustments**
+  - **QR code sized smaller for optimal viewing while maintaining clear scanability across all UPI apps**
+  - **Responsive QR code and dialog sizing that maintains functionality on both desktop and mobile devices**
+  - **QR code remains perfectly centered within the smaller payment dialog**
+  - **Aesthetically balanced layout with appropriately sized QR code that doesn't dominate the compact dialog**
+  - Visible countdown timer showing minutes and seconds remaining
+  - Clear payment confirmation interface displaying "Pay to CupCakeMC Store"
+  - **"Done" button prominently displayed below the QR code**
+  - **Payment confirmation dialog with "Have you completed the payment?" message and Yes/No options**
+  - Accurate currency display showing correct INR amounts
+  - Proper error handling and user feedback for all edge cases
+  - Privacy-focused labels hiding actual UPI ID from buyers
+  - **Black background with white text and pink accents maintaining CupCakeMC theme consistency**
+- Admin orders panel with:
+  - Clear display of order details for each order
+  - Hide/unhide toggle buttons for each order with intuitive visual states
+  - "Show hidden" toggle to control visibility of hidden orders
+  - Visual indicators for hidden vs visible orders
+- **Role-based UI elements**:
+  - **UPI settings section accessible to authenticated admins only using email-based system exclusively**
+  - **Manage Roles tab accessible to authenticated admins only using email-based system exclusively**
+  - **Admin Token Management section accessible to authenticated admins only**
+  - Clear role indicators in admin dashboard
+  - Appropriate access controls for moderator vs admin features
+  - **Admin Dashboard navigation item must be visible for vion4712@gmail.com**
+  - **Fix frontend admin role detection to properly show Admin Dashboard for vion4712@gmail.com**
+- **Manage Roles interface**:
+  - **Role management functionality**
+  - **Role promotion buttons for Moderator and Admin roles**
+  - **Current role display**
+  - **Role assignment confirmation dialogs**
+- Payment History interface with:
+  - **"Pending - Please kindly wait for confirmation" message display for pending orders**
+  - **Visual indicators to distinguish pending orders from other statuses**
+  - **Persistent display of pending state after page refresh**
+- Toast notifications for:
+  - QR code expiration alerts
+  - Payment status updates
+  - Error conditions and validation failures
+  - **Authentication success and failure notifications using email-based system exclusively**
+  - **Registration success and error notifications**
+  - **Role-based access notifications**
+  - **Role assignment success and failure notifications**
+  - **Admin token generation, usage, and revocation notifications**
+  - **Production deployment status notifications**
+- Comprehensive error handling UI for all failure scenarios
+- User-friendly messages and consistent behavior across all flows
+- All content displayed in English language
+- Frontend validation for currency formatting consistency with backend
+- Payment interface text updated to show "Pay to CupCakeMC Store" instead of UPI handle
+- Ensure all images and assets load correctly from the custom domain path
+- Verify all interactive elements function properly under the custom domain
+- Local storage persistence for admin hide/unhide preferences across page reloads
+- **Role-appropriate navigation and feature visibility based on user authentication and permissions using email-based system exclusively**
+- Consistent application of cupcake theme across mobile and desktop versions
+- **Production-ready UI with proper loading states and error boundaries**
+- **Keep all existing cupcake theme gradients, shadows, and styles intact for inner content sections**
+- **Remove any broken UI code that causes authentication modal freezing or logout crashes**
+- **Update all visible text references from "CupCake SMP" to "CupCakeMC" including:**
+  - **Homepage banners and hero sections**
+  - **Server status components**
+  - **Headers and footers**
+  - **Document titles and page titles**
+  - **Navigation labels**
+  - **Payment interface labels**
+  - **Admin dashboard references**
+  - **Authentication forms and modals**
+  - **All user-facing text and labels**
+- **Update SEO metadata to reflect "CupCakeMC":**
+  - **Open Graph titles and descriptions**
+  - **Twitter card metadata**
+  - **Canonical URLs and meta descriptions**
+  - **Site name and branding references**
+  - **All metadata tags and social sharing content**
